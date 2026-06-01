@@ -2,7 +2,7 @@ program Hash_Study;
 
 // consulta https://www.calculadorafacil.com.br/computacao/validar-cpf
 
-uses crt;
+uses crt, sysutils;
 
 type
   TCpf = string[11];
@@ -16,22 +16,44 @@ var
   hash: array[00..99] of ^TNode;
 
 function VerifyCpf(cpf: TCpf): integer;
-var cpfEndDigit, i: integer;
+var sum, digit, mult, turn: integer;
+  cpfEndDigit: string[2];
 begin
-  cpfEndDigit := cpf[10..11];
+  cpfEndDigit := '';
+  sum := 0;
+  mult := 10;
 
+  for turn := 0 to 1 do
+  begin
+    sum := 0;
+    mult := 10 + turn;
 
-  VerifyCpf := cpfEndDigit;
+    for digit := 1 to (9 + turn) do
+    begin
+      sum := sum + (StrToInt(cpf[digit]) * mult);
+
+      mult := mult - 1;
+    end;
+    if sum = 10 then sum := 0;
+
+    sum := (sum * 10) mod 11;
+
+    cpfEndDigit := cpfEndDigit + IntToStr(sum);
+  end;
+
+  VerifyCpf := StrToInt(cpfEndDigit);
 end;
 
 procedure InsertCpf(cpf: TCpf);
-var endDigit: integer;
+var endDigit: string;
 begin
   endDigit := VerifyCpf(cpf);
 
-  if endDigit <> 100 then
+  if endDigit <> '100' then
   begin
-    
+    writeln('Valid CPF!');
+
+    new(hash[StrToInt(cpf[1] + cpf[2])]);
   end
   else
   begin
