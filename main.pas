@@ -12,6 +12,7 @@ end;
 var 
   cpf: TCpf;
   hash: array[00..99] of ^TNode;
+  option: integer;
 
 function SearchCpf(cpf: TCpf): TNode;
 var current: ^TNode;
@@ -65,6 +66,9 @@ procedure InsertCpf(cpf: TCpf);
 var endDigit: integer;
   aux, position: ^TNode;
 begin
+  writeln('Write the CPF (just numbers): ');
+  read(cpf);
+
   endDigit := VerifyCpf(cpf);
 
   new(aux);
@@ -104,7 +108,14 @@ begin
 end;
 
 begin
-  Write('Choose your action:');
-  ReadLn(cpf);
-  InsertCpf(cpf);
+  while option <> 0 do
+  begin
+    Write('Choose your action:');
+    ReadLn(option);
+
+    case option of
+      1: InsertCpf(cpf);
+      
+    end;
+  end;
 end.
