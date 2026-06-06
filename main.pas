@@ -7,6 +7,7 @@ uses crt, sysutils;
 type
   TCpf = string[11];
   TNode = record
+    ant: ^TNode;
     cpf: TCpf;
     next: ^TNode;
 end;
@@ -14,6 +15,22 @@ end;
 var 
   cpf: TCpf;
   hash: array[00..99] of ^TNode;
+
+function SearchCpf(cpf: TCpf): TNode;
+var current: ^TNode;
+begin
+  current := hash[VerifyCpf(cpf)];
+
+  while current <> nil and current^.next^.cpf <> cpf do
+  begin
+    if cpf > current^.cpf then
+    begin
+      current := current^.next;
+    end
+  end;
+
+  SearchCpf := current;
+end;
 
 function VerifyCpf(cpf: TCpf): integer;
 var sum, digit, mult, turn: integer;
@@ -41,19 +58,34 @@ begin
     cpfEndDigit := cpfEndDigit + IntToStr(sum);
   end;
 
+  if (cpf[10] + cpf[11]) <> cpfEndDigit then
+    cpfEndDigit := '100'
+
   VerifyCpf := StrToInt(cpfEndDigit);
 end;
 
 procedure InsertCpf(cpf: TCpf);
-var endDigit: string;
+var endDigit: integer;
+  aux, current: ^TNode;
 begin
   endDigit := VerifyCpf(cpf);
 
-  if endDigit <> '100' then
+  new(aux);
+
+  if aux = nil then
+  begin
+    writeln('Memory full!');
+    readkey;
+  end
+  else if endDigit <> 100 then
   begin
     writeln('Valid CPF!');
 
-    new(hash[StrToInt(cpf[1] + cpf[2])]);
+    current := hash[endDigit];
+
+    aux^.cpf := cpf;
+    aux^.next := nil;
+    hash[endDigit] := aux;
   end
   else
   begin
