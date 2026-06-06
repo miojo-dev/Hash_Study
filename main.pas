@@ -110,12 +110,27 @@ end;
 begin
   while option <> 0 do
   begin
-    Write('Choose your action:');
+    Writeln('Choose your action:');
+    Writeln('1 - Insert a CPF');
+    Writeln('2 - Search a CPF');
+    Writeln('3 - Delete a CPF');
+    Writeln('4 - Show all CPFs');
+    Writeln('0 - Exit');
     ReadLn(option);
 
     case option of
       1: InsertCpf(cpf);
-      
+      2: begin
+        Writeln('Write the CPF (just numbers): ');
+        ReadLn(cpf);
+        SearchCpf(cpf);
+      end;
+      3: begin
+        Writeln('Write the CPF (just numbers): ');
+        ReadLn(cpf);
+        DeleteCpf(cpf);
+      end;
+      4: WriteAllCpfs();
     end;
   end;
 end.
