@@ -1,13 +1,10 @@
 program Hash_Study;
 
-// consulta https://www.calculadorafacil.com.br/computacao/validar-cpf
-
 uses crt, sysutils;
 
 type
   TCpf = string[11];
   TNode = record
-    ant: ^TNode;
     cpf: TCpf;
     next: ^TNode;
 end;
@@ -66,7 +63,7 @@ end;
 
 procedure InsertCpf(cpf: TCpf);
 var endDigit: integer;
-  aux, current: ^TNode;
+  aux, position: ^TNode;
 begin
   endDigit := VerifyCpf(cpf);
 
@@ -81,21 +78,33 @@ begin
   begin
     writeln('Valid CPF!');
 
-    current := hash[endDigit];
+    position := SearchCpf(cpf);
 
     aux^.cpf := cpf;
-    aux^.next := nil;
-    hash[endDigit] := aux;
+    
+    if position^.next = nil then
+    begin
+      aux^.next := nil;
+    end
+    else
+    begin
+      aux^.next := position^.next;
+    end;
+
+    position^.next := aux;
   end
   else
   begin
     writeln('Invalid CPF!');
     readkey;
   end;
+
+  dispose(aux^.next);
+  dispose(aux);
 end;
 
 begin
-  Write('Digite o CPF: ');
+  Write('Choose your action:');
   ReadLn(cpf);
   InsertCpf(cpf);
 end.
