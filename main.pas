@@ -14,25 +14,9 @@ var
   hash: array[00..99] of ^TNode;
   option: integer;
 
-function SearchCpf(cpf: TCpf): TNode;
-var current: ^TNode;
-begin
-  current := hash[VerifyCpf(cpf)];
-
-  while current <> nil and current^.next^.cpf <> cpf do
-  begin
-    if cpf > current^.cpf then
-    begin
-      current := current^.next;
-    end
-  end;
-
-  SearchCpf := current;
-end;
-
 function VerifyCpf(cpf: TCpf): integer;
 var sum, digit, mult, turn: integer;
-  cpfEndDigit: string[2];
+  cpfEndDigit: string;
 begin
   cpfEndDigit := '';
   sum := 0;
@@ -57,9 +41,35 @@ begin
   end;
 
   if (cpf[10] + cpf[11]) <> cpfEndDigit then
-    cpfEndDigit := '100'
+    cpfEndDigit := '100';
 
   VerifyCpf := StrToInt(cpfEndDigit);
+end;
+
+function SearchCpf(cpf: TCpf): ^TNode;
+var current: ^TNode;
+begin
+  new(current);
+
+  if current <> nil then
+  begin
+    current := hash[VerifyCpf(cpf)];
+
+    while (current <> nil) and 
+      (current^.next^.cpf <> cpf) and
+      (current^.next^.cpf < cpf) do
+      current := current^.next;
+
+    end
+  else begin
+    writeln('Memory full!');
+    readkey;
+  end;
+
+  SearchCpf := current;
+
+  dispose(current^.next);
+  dispose(current);
 end;
 
 procedure InsertCpf(cpf: TCpf);
@@ -105,6 +115,20 @@ begin
 
   dispose(aux^.next);
   dispose(aux);
+end;
+
+procedure DeleteCpf(cpf: TCpf);
+var deletion, previous: ^TNode;
+begin
+  deletion := SearchCpf(cpf)^.next;
+
+  if deletion^.next <> nil then
+  begin
+    previous := deletion;
+    deletion := deletion^.next;
+    previous^.next := deletion^.next;
+    dispose(deletion);
+  end;
 end;
 
 begin
