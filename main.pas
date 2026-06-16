@@ -4,14 +4,15 @@ uses crt, sysutils;
 
 type
   TCpf = string[11];
+  TPointer = ^TNode;
   TNode = record
     cpf: TCpf;
-    next: ^TNode;
-end;
+    next: TPointer;
+  end;
 
 var 
   cpf: TCpf;
-  hash: array[00..99] of ^TNode;
+  hash: array[00..99] of TPointer;
   option: integer;
 
 function VerifyCpf(cpf: TCpf): integer;
@@ -46,8 +47,8 @@ begin
   VerifyCpf := StrToInt(cpfEndDigit);
 end;
 
-function SearchCpf(cpf: TCpf): ^TNode;
-var current: ^TNode;
+function SearchCpf(cpf: TCpf): TPointer;
+var current: TPointer;
 begin
   new(current);
 
@@ -76,9 +77,6 @@ procedure InsertCpf(cpf: TCpf);
 var endDigit: integer;
   aux, position: ^TNode;
 begin
-  writeln('Write the CPF (just numbers): ');
-  read(cpf);
-
   endDigit := VerifyCpf(cpf);
 
   new(aux);
@@ -132,6 +130,8 @@ begin
 end;
 
 begin
+  option := -1;
+
   while option <> 0 do
   begin
     Writeln('Choose your action:');
@@ -143,18 +143,25 @@ begin
     ReadLn(option);
 
     case option of
-      1: InsertCpf(cpf);
+      1: begin
+        writeln('Write the CPF (just numbers): ');
+        read(cpf);
+        InsertCpf(cpf);
+      end;
+
       2: begin
         Writeln('Write the CPF (just numbers): ');
         ReadLn(cpf);
         SearchCpf(cpf);
       end;
+
       3: begin
         Writeln('Write the CPF (just numbers): ');
         ReadLn(cpf);
         DeleteCpf(cpf);
       end;
-      4: WriteAllCpfs();
+
+      //4: WriteAllCpfs();
     end;
   end;
 end.
