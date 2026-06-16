@@ -22,18 +22,19 @@ begin
   cpfEndDigit := '';
   sum := 0;
   mult := 10;
-
+  
   for turn := 0 to 1 do
   begin
     sum := 0;
     mult := 10 + turn;
-
+    
     for digit := 1 to (9 + turn) do
     begin
       sum := sum + (StrToInt(cpf[digit]) * mult);
 
       mult := mult - 1;
     end;
+    
     if sum = 10 then sum := 0;
 
     sum := (sum * 10) mod 11;
@@ -43,44 +44,34 @@ begin
 
   if (cpf[10] + cpf[11]) <> cpfEndDigit then
     cpfEndDigit := '100';
-
+  
   VerifyCpf := StrToInt(cpfEndDigit);
 end;
 
 function SearchCpf(cpf: TCpf): TPointer;
 var current: TPointer;
 begin
-  new(current);
-
-  if current <> nil then
+  current := hash[VerifyCpf(cpf)];
+  
+  while (current <> nil) and 
+    (current^.next^.cpf <> cpf) and
+    (current^.next^.cpf < cpf) do
   begin
-    current := hash[VerifyCpf(cpf)];
-
-    while (current <> nil) and 
-      (current^.next^.cpf <> cpf) and
-      (current^.next^.cpf < cpf) do
-      current := current^.next;
-
-    end
-  else begin
-    writeln('Memory full!');
-    readkey;
+    current := current^.next;
   end;
 
   SearchCpf := current;
-
-  dispose(current^.next);
-  dispose(current);
 end;
 
 procedure InsertCpf(cpf: TCpf);
 var endDigit: integer;
-  aux, position: ^TNode;
+  aux, position: TPointer;
 begin
   endDigit := VerifyCpf(cpf);
-
+  position := nil;
+  
   new(aux);
-
+  
   if aux = nil then
   begin
     writeln('Memory full!');
@@ -93,17 +84,17 @@ begin
     position := SearchCpf(cpf);
 
     aux^.cpf := cpf;
-    
-    if position^.next = nil then
-    begin
-      aux^.next := nil;
-    end
-    else
-    begin
-      aux^.next := position^.next;
-    end;
 
-    position^.next := aux;
+    if position = nil then
+    begin
+      hash[endDigit] := aux;
+      aux^.next := nil;
+    end else
+    begin
+      aux^.next := position^.next^.next;
+
+      position^.next := aux;
+    end;
   end
   else
   begin
@@ -116,7 +107,7 @@ begin
 end;
 
 procedure DeleteCpf(cpf: TCpf);
-var deletion, previous: ^TNode;
+var deletion, previous: TPointer;
 begin
   deletion := SearchCpf(cpf)^.next;
 
