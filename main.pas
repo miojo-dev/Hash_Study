@@ -10,7 +10,7 @@ type
     next: TPointer;
   end;
 
-var 
+var
   cpf: TCpf;
   hash: array[00..99] of TPointer;
   option: integer;
@@ -35,14 +35,14 @@ begin
       mult := mult - 1;
     end;
     
-    if sum = 10 then sum := 0;
-
-    sum := (sum * 10) mod 11;
+    sum := sum mod 11;
+    if sum < 2 then sum := 0
+    else sum := 11 - sum;
 
     cpfEndDigit := cpfEndDigit + IntToStr(sum);
   end;
 
-  if (cpf[10] + cpf[11]) <> cpfEndDigit then
+  if Copy(cpf, 10, 2) <> cpfEndDigit then
     cpfEndDigit := '100';
   
   VerifyCpf := StrToInt(cpfEndDigit);
@@ -50,14 +50,24 @@ end;
 
 function SearchCpf(cpf: TCpf): TPointer;
 var current: TPointer;
+  index: integer;
 begin
-  current := hash[VerifyCpf(cpf)];
-  
-  while (current <> nil) and 
-    (current^.next^.cpf <> cpf) and
-    (current^.next^.cpf < cpf) do
+  index := VerifyCpf(cpf);
+
+  if index <> 100 then
   begin
-    current := current^.next;
+    current := hash[index];
+
+    while (current <> nil) and
+      (current^.next <> nil) and
+      (current^.next^.cpf <> cpf) and
+      (current^.next^.cpf < cpf) do
+    begin
+      current := current^.next;
+    end;
+  end else
+  begin
+    current := nil;
   end;
 
   SearchCpf := current;
@@ -68,55 +78,65 @@ var endDigit: integer;
   aux, position: TPointer;
 begin
   endDigit := VerifyCpf(cpf);
-  position := nil;
-  
-  new(aux);
-  
-  if aux = nil then
-  begin
-    writeln('Memory full!');
-    readkey;
-  end
-  else if endDigit <> 100 then
-  begin
-    writeln('Valid CPF!');
 
-    position := SearchCpf(cpf);
-
-    aux^.cpf := cpf;
-
-    if position = nil then
-    begin
-      hash[endDigit] := aux;
-      aux^.next := nil;
-    end else
-    begin
-      aux^.next := position^.next^.next;
-
-      position^.next := aux;
-    end;
-  end
-  else
+  if endDigit = 100 then
   begin
     writeln('Invalid CPF!');
     readkey;
-  end;
+  end else
+  begin
+    position := nil;
+    
+    new(aux);
+    
+    if aux = nil then
+    begin
+      writeln('Memory full!');
+      readkey; 
+    end else
+    begin
+      clrscr;
+      writeln('Valid CPF!');
 
-  dispose(aux^.next);
-  dispose(aux);
+      aux^.cpf := cpf;
+
+      position := SearchCpf(cpf);
+      if position = nil then
+      begin
+        hash[endDigit] := aux;
+        aux^.next := nil;
+      end else
+      begin
+        aux^.next := position^.next^.next;
+
+        position^.next := aux;
+      end;
+
+      writeln('CPF inserted successfully!');
+      writeln;
+    end;
+  end;
 end;
 
 procedure DeleteCpf(cpf: TCpf);
 var deletion, previous: TPointer;
 begin
-  deletion := SearchCpf(cpf)^.next;
-
-  if deletion^.next <> nil then
+  if VerifyCpf(cpf) <> 100 then
   begin
-    previous := deletion;
-    deletion := deletion^.next;
-    previous^.next := deletion^.next;
-    dispose(deletion);
+    previous := SearchCpf(cpf);
+
+    if previous <> nil then
+    begin
+      deletion := previous^.next;
+
+      previous^.next := deletion^.next;
+
+      dispose(deletion);
+    end;
+  end else
+  begin
+    writeln('Invalid CPF!');
+    readkey;
   end;
 end;
 
@@ -135,20 +155,20 @@ begin
 
     case option of
       1: begin
-        writeln('Write the CPF (just numbers): ');
+        write('Write the CPF (just numbers): ');
         read(cpf);
         InsertCpf(cpf);
       end;
 
       2: begin
-        Writeln('Write the CPF (just numbers): ');
-        ReadLn(cpf);
-        SearchCpf(cpf);
+        Write('Write the CPF (just numbers): ');
+        Read(cpf);
+        Writeln(SearchCpf(cpf)^.cpf);
       end;
 
       3: begin
-        Writeln('Write the CPF (just numbers): ');
-        ReadLn(cpf);
+        Write('Write the CPF (just numbers): ');
+        Read(cpf);
         DeleteCpf(cpf);
       end;
 
