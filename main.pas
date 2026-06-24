@@ -15,6 +15,12 @@ var
   hash: array[00..99] of TPointer;
   option: integer;
 
+procedure ReadCpf();
+begin
+  write('Write the CPF (just numbers): ');
+  read(cpf);
+end;
+
 function VerifyCpf(cpf: TCpf): integer;
 var sum, digit, mult, turn: integer;
   cpfEndDigit: string;
@@ -48,7 +54,7 @@ begin
   VerifyCpf := StrToInt(cpfEndDigit);
 end;
 
-function SearchCpf(cpf: TCpf): TPointer;
+function FindNodeBefore(cpf: TCpf): TPointer;
 var current: TPointer;
   index: integer;
 begin
@@ -70,7 +76,26 @@ begin
     current := nil;
   end;
 
-  SearchCpf := current;
+  FindNodeBefore := current;
+end;
+
+function FindCpf(cpf: TCpf): TPointer;
+var current: TPointer;
+  index: integer;
+begin
+  index := VerifyCpf(cpf);
+
+  if index <> 100 then
+  begin
+    current := hash[index];
+
+    while (current <> nil) and (current^.cpf <> cpf) do
+      current := current^.next;
+
+  end else
+    current := nil;
+
+  FindCpf := current;
 end;
 
 procedure InsertCpf(cpf: TCpf);
@@ -87,56 +112,112 @@ begin
   begin
     position := nil;
     
-    new(aux);
-    
-    if aux = nil then
+    if FindCpf(cpf) <> nil then
     begin
-      writeln('Memory full!');
-      readkey; 
+      writeln('CPF already registered!');
+      readkey;
+      
     end else
     begin
-      clrscr;
-      writeln('Valid CPF!');
-
-      aux^.cpf := cpf;
-
-      position := SearchCpf(cpf);
-      if position = nil then
+      new(aux);
+    
+      if aux = nil then
       begin
-        hash[endDigit] := aux;
-        aux^.next := nil;
+        writeln('Memory full!');
+        readkey; 
       end else
       begin
-        aux^.next := position^.next^.next;
-
-        position^.next := aux;
+        clrscr;
+        writeln('Valid CPF!');
+        
+        aux^.cpf := cpf;
+    
+        position := FindNodeBefore(cpf);
+        if (position = nil) or (position^.cpf > cpf) then
+        begin
+          aux^.next := hash[endDigit];
+          hash[endDigit] := aux;
+        end else
+        begin
+          aux^.next := position^.next;
+        
+          position^.next := aux;
+        end;
+        
+        writeln('CPF inserted successfully!');
+        writeln;
       end;
-
-      writeln('CPF inserted successfully!');
-      writeln;
     end;
   end;
 end;
 
 procedure DeleteCpf(cpf: TCpf);
 var deletion, previous: TPointer;
+  endDigit: integer;
 begin
-  if VerifyCpf(cpf) <> 100 then
+  endDigit := VerifyCpf(cpf);
+  
+  if endDigit <> 100 then
   begin
-    previous := SearchCpf(cpf);
+    previous := FindNodeBefore(cpf);
 
-    if previous <> nil then
+    if previous = nil then
+      writeln('CPF not found!')
+    else if previous^.cpf = cpf then
+    begin
+      hash[endDigit] := previous^.next;
+      
+      dispose(previous);
+      writeln('CPF deleted successfully!');
+    end
+    else if (previous^.next <> nil) and (previous^.next^.cpf = cpf) then
     begin
       deletion := previous^.next;
-
+      
       previous^.next := deletion^.next;
-
+      
       dispose(deletion);
-    end;
+      writeln('CPF deleted successfully!');
+    end
+    else
+      writeln('CPF not found!');
   end else
   begin
     writeln('Invalid CPF!');
     readkey;
+  end;
+end;
+
+procedure ConsultCpf(cpf: TCpf);
+var result: TPointer;
+  index: integer;
+begin
+  result := FindCpf(cpf);
+  index := VerifyCpf(cpf);
+  
+  if result <> nil then
+    Writeln(result^.cpf, 'on index: ', index)
+  else
+    Writeln('CPF not found!');
+end;
+
+procedure WriteAll(hashArray: array of TPointer);
+var i: integer;
+  aux: TPointer;
+begin
+  clrscr;
+  for i := 00 to 99 do
+  begin
+    aux := hashArray[i];
+    
+    writeln('Index: ', i);
+    
+    while aux <> nil do
+    begin
+      writeln;
+      Writeln(aux^.cpf);
+      aux := aux^.next;
+    end;
   end;
 end;
 
@@ -155,24 +236,21 @@ begin
 
     case option of
       1: begin
-        write('Write the CPF (just numbers): ');
-        read(cpf);
+        ReadCpf();
         InsertCpf(cpf);
       end;
 
       2: begin
-        Write('Write the CPF (just numbers): ');
-        Read(cpf);
-        Writeln(SearchCpf(cpf)^.cpf);
+        ReadCpf();
+        ConsultCpf(cpf);
       end;
 
       3: begin
-        Write('Write the CPF (just numbers): ');
-        Read(cpf);
+        ReadCpf();
         DeleteCpf(cpf);
       end;
 
-      //4: WriteAllCpfs();
+      4: WriteAll(hash);
     end;
   end;
 end.
